@@ -158,4 +158,4 @@ Call Link: /call-room/{interview.id}
         "datetime": interview.datetime.isoformat(),
         "mode": interview.mode,
         "call_link": f"/call-room/{interview.id}"
-    }), 201
+    }), 201.
