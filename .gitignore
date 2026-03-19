@@ -5,3 +5,5 @@ __pycache__/
 instance/
 hr_system.db
 migrations/
+frontend/node_modules/
+frotend/node_modules/
