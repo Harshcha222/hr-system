@@ -23,8 +23,7 @@ This project is a mini web dashboard for Salarite's Virtual HR + ATS platform. I
 - **Frontend:** React (Vite)
 - **Database:** SQLite
 - **Real-time:** Auto-refresh (every 5 seconds)
-- **Deployment:** (Add your Render/Railway links after deployment)
-
+- **Deployment:** https://hr-system-frotend.onrender.com
 ---
 
 ## Demo Credentials
