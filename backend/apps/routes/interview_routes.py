@@ -83,52 +83,61 @@
 #         "call_link": f"/call-room/{interview.id}"
 #     })
 
-import threading
+# import threading
+# from datetime import datetime
+# from flask import Blueprint, request, jsonify, current_app
+# from flask_jwt_extended import get_jwt_identity
+# import requests
+
+# from apps import db
+# from apps.models import Interview, User, ActivityLog
+# from apps.routes.auth import roles_required
+
+# interview_bp = Blueprint('interview_bp', __name__)
+
+
+# def send_email_async(app, candidate_email, candidate_name, interview):
+#     with app.app_context():
+#         try:
+#             payload = {
+#                 "from": "Acme <onboarding@resend.dev>",
+#                 "to": [candidate_email],
+#                 "subject": "Interview Scheduled",
+#                 "html": f"""
+#                 <p>Hello {candidate_name},</p>
+#                 <p>Your interview has been scheduled.</p>
+#                 <p><b>Date & Time:</b> {interview.datetime}</p>
+#                 <p><b>Mode:</b> {interview.mode}</p>
+#                 <p><b>Call Link:</b> /call-room/{interview.id}</p>
+#                 """
+#             }
+
+#             headers = {
+#                 "Authorization": f"Bearer {current_app.config['RESEND_API_KEY']}",
+#                 "Content-Type": "application/json"
+#             }
+
+#             response = requests.post(
+#                 "https://api.resend.com/emails",
+#                 json=payload,
+#                 headers=headers,
+#                 timeout=20
+#             )
+
+#             print("RESEND STATUS:", response.status_code, response.text)
+
+#         except Exception as e:
+#             print("EMAIL SENDING FAILED:", str(e))
+
 from datetime import datetime
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity
-import requests
 
 from apps import db
 from apps.models import Interview, User, ActivityLog
 from apps.routes.auth import roles_required
 
 interview_bp = Blueprint('interview_bp', __name__)
-
-
-def send_email_async(app, candidate_email, candidate_name, interview):
-    with app.app_context():
-        try:
-            payload = {
-                "from": "Acme <onboarding@resend.dev>",
-                "to": [candidate_email],
-                "subject": "Interview Scheduled",
-                "html": f"""
-                <p>Hello {candidate_name},</p>
-                <p>Your interview has been scheduled.</p>
-                <p><b>Date & Time:</b> {interview.datetime}</p>
-                <p><b>Mode:</b> {interview.mode}</p>
-                <p><b>Call Link:</b> /call-room/{interview.id}</p>
-                """
-            }
-
-            headers = {
-                "Authorization": f"Bearer {current_app.config['RESEND_API_KEY']}",
-                "Content-Type": "application/json"
-            }
-
-            response = requests.post(
-                "https://api.resend.com/emails",
-                json=payload,
-                headers=headers,
-                timeout=20
-            )
-
-            print("RESEND STATUS:", response.status_code, response.text)
-
-        except Exception as e:
-            print("EMAIL SENDING FAILED:", str(e))
-
 
 @interview_bp.route('/interviews', methods=['POST'])
 @roles_required(['hr'])
@@ -163,20 +172,12 @@ def schedule_interview():
     )
 
     db.session.add(interview)
-    db.session.commit()
-
-    app = current_app._get_current_object()
-    thread = threading.Thread(
-        target=send_email_async,
-        args=(app, candidate.email, candidate.name, interview)
-    )
-    thread.daemon = True
-    thread.start()
 
     log = ActivityLog(
-        message=f"Interview scheduled for {candidate.name} via {interview.mode}"
+        message=f"Interview scheduled for {candidate.name} via {data['mode']}"
     )
     db.session.add(log)
+
     db.session.commit()
 
     return jsonify({
