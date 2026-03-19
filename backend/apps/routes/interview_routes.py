@@ -84,7 +84,6 @@
 #     })
 
 
-
 import threading
 from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
@@ -98,8 +97,12 @@ interview_bp = Blueprint('interview_bp', __name__)
 
 def send_email_async(app, msg):
     with app.app_context():
-        mail.send(msg)
-
+        try:
+            mail.send(msg)
+            print("EMAIL SENT SUCCESSFULLY TO:", msg.recipients)
+        except Exception as e:
+            print("EMAIL SENDING FAILED:", str(e))
+ 
 @interview_bp.route('/interviews', methods=['POST'])
 @roles_required(['hr'])
 def schedule_interview():
@@ -114,9 +117,19 @@ def schedule_interview():
     if data.get('mode') not in allowed_modes:
         return jsonify({"msg": "Invalid mode"}), 400
 
+    interview_time = datetime.fromisoformat(data['datetime'])
+
+    existing = Interview.query.filter_by(
+        candidate_id=data['candidate_id'],
+        datetime=interview_time
+    ).first()
+
+    if existing:
+        return jsonify({"msg": "Interview already scheduled at this time"}), 400
+
     interview = Interview(
         candidate_id=data['candidate_id'],
-        datetime=datetime.fromisoformat(data['datetime']),
+        datetime=interview_time,
         mode=data['mode'],
         created_by=current_user_id,
         task_id=data.get('task_id')
@@ -158,4 +171,4 @@ Call Link: /call-room/{interview.id}
         "datetime": interview.datetime.isoformat(),
         "mode": interview.mode,
         "call_link": f"/call-room/{interview.id}"
-    }), 201.
+    }), 201
