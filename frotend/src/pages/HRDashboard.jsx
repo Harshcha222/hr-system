@@ -125,6 +125,7 @@ import {
   DialogTitle, DialogContent, DialogActions, TextField,
   FormControl, InputLabel
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import TopBar from './TopBar';
 
@@ -139,11 +140,12 @@ export default function HRDashboard() {
   });
   const [candidates, setCandidates] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
+  const navigate = useNavigate();
 
   const fetchAll = async () => {
     const [tasksRes, candidatesRes] = await Promise.all([
-      api.get('/tasks/assigned'),          // ✅ FIXED
-      api.get('/users?role=candidate')     // ✅ FIXED
+      api.get('/tasks/assigned'),
+      api.get('/users?role=candidate')
     ]);
     setTasks(tasksRes.data);
     setCandidates(candidatesRes.data);
@@ -156,36 +158,50 @@ export default function HRDashboard() {
   }, []);
 
   const handleStatusChange = async (task, status) => {
-    await api.put(`/tasks/${task.id}/status`, { status }); // ✅ FIXED
+    await api.put(`/tasks/${task.id}/status`, { status });
     fetchAll();
   };
 
   const handleOpenInterview = (task) => {
     setSelectedTask(task);
-    setInterviewForm(f => ({ ...f, task_id: task.id }));
+    setInterviewForm((f) => ({ ...f, task_id: task.id }));
     setOpen(true);
   };
 
-  const handleInterviewChange = e =>
-    setInterviewForm(f => ({ ...f, [e.target.name]: e.target.value }));
+  const handleInterviewChange = (e) =>
+    setInterviewForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleInterviewSubmit = async (e) => {
     e.preventDefault();
-    await api.post('/interviews', interviewForm); // ✅ FIXED
-    setOpen(false);
-    setInterviewForm({
-      candidate_id: '',
-      datetime: '',
-      mode: 'Voice',
-      task_id: ''
-    });
+
+    try {
+      const res = await api.post('/interviews', interviewForm);
+
+      setOpen(false);
+      setInterviewForm({
+        candidate_id: '',
+        datetime: '',
+        mode: 'Voice',
+        task_id: ''
+      });
+
+      fetchAll();
+
+      if (res.data.call_link) {
+        navigate(res.data.call_link);
+      }
+    } catch (err) {
+      alert(err.response?.data?.msg || 'Interview scheduling failed');
+    }
   };
 
   return (
     <>
       <TopBar />
       <Box p={3}>
-        <Typography variant="h4" gutterBottom>HR Dashboard</Typography>
+        <Typography variant="h4" gutterBottom>
+          HR Dashboard
+        </Typography>
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={8}>
@@ -194,7 +210,7 @@ export default function HRDashboard() {
                 <Typography variant="h6">Assigned Tasks</Typography>
 
                 <List>
-                  {tasks.map(t => (
+                  {tasks.map((t) => (
                     <ListItem key={t.id} divider>
                       <ListItemText
                         primary={t.title}
@@ -203,8 +219,8 @@ export default function HRDashboard() {
 
                       <Select
                         value={t.status}
-                        onChange={e => handleStatusChange(t, e.target.value)}
-                        sx={{ minWidth: 120, mr: 2 }}
+                        onChange={(e) => handleStatusChange(t, e.target.value)}
+                        sx={{ minWidth: 140, mr: 2 }}
                       >
                         <MenuItem value="Pending">Pending</MenuItem>
                         <MenuItem value="In Progress">In Progress</MenuItem>
@@ -220,7 +236,6 @@ export default function HRDashboard() {
                     </ListItem>
                   ))}
                 </List>
-
               </CardContent>
             </Card>
           </Grid>
@@ -231,7 +246,6 @@ export default function HRDashboard() {
 
           <form onSubmit={handleInterviewSubmit}>
             <DialogContent>
-
               <FormControl fullWidth margin="normal">
                 <InputLabel>Candidate</InputLabel>
                 <Select
@@ -240,7 +254,7 @@ export default function HRDashboard() {
                   onChange={handleInterviewChange}
                   required
                 >
-                  {candidates.map(c => (
+                  {candidates.map((c) => (
                     <MenuItem key={c.id} value={c.id}>
                       {c.name || `Candidate #${c.id}`}
                     </MenuItem>
@@ -273,16 +287,16 @@ export default function HRDashboard() {
                   <MenuItem value="Chat">Chat</MenuItem>
                 </Select>
               </FormControl>
-
             </DialogContent>
 
             <DialogActions>
               <Button onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" variant="contained">Schedule</Button>
+              <Button type="submit" variant="contained">
+                Schedule
+              </Button>
             </DialogActions>
           </form>
         </Dialog>
-
       </Box>
     </>
   );
