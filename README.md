@@ -13,7 +13,6 @@ This project is a mini web dashboard for Salarite's Virtual HR + ATS platform. I
 - **Internal Call Room:** Placeholder for inbuilt call room at `/call-room/{id}`.
 - **Demo Users:** Pre-seeded users for easy login and testing.
 - **Admin User Management:** Admins can register new users (Employer, HR, Candidate) and assign roles from the Admin Dashboard.
-- **Email Notification:** When an interview is scheduled, the candidate receives an email notification automatically.
 - **Role-Based Authentication & Authorization:** The system uses JWT-based authentication and enforces role-based access control. Each user only has access to features and data relevant to their role. For example, HR users can only view and manage their own assigned tasks, not those of others.
 
 ---
