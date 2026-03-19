@@ -125,9 +125,9 @@ import {
   DialogTitle, DialogContent, DialogActions, TextField,
   FormControl, InputLabel
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import TopBar from './TopBar';
+import { useNavigate } from 'react-router-dom';
 
 export default function HRDashboard() {
   const [tasks, setTasks] = useState([]);
@@ -139,7 +139,7 @@ export default function HRDashboard() {
     task_id: ''
   });
   const [candidates, setCandidates] = useState([]);
-  const [selectedTask, setSelectedTask] = useState(null);
+  const [callLink, setCallLink] = useState('');
   const navigate = useNavigate();
 
   const fetchAll = async () => {
@@ -163,45 +163,43 @@ export default function HRDashboard() {
   };
 
   const handleOpenInterview = (task) => {
-    setSelectedTask(task);
-    setInterviewForm((f) => ({ ...f, task_id: task.id }));
+    setInterviewForm(f => ({ ...f, task_id: task.id }));
     setOpen(true);
   };
 
-  const handleInterviewChange = (e) =>
-    setInterviewForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const handleInterviewChange = e =>
+    setInterviewForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleInterviewSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const res = await api.post('/interviews', interviewForm);
+    const res = await api.post('/interviews', interviewForm);
 
-      setOpen(false);
-      setInterviewForm({
-        candidate_id: '',
-        datetime: '',
-        mode: 'Voice',
-        task_id: ''
-      });
+    setOpen(false);
+    setInterviewForm({
+      candidate_id: '',
+      datetime: '',
+      mode: 'Voice',
+      task_id: ''
+    });
 
-      fetchAll();
+    // 🔥 Create full real link
+    const fullLink = window.location.origin + res.data.call_link;
 
-      if (res.data.call_link) {
-        navigate(res.data.call_link);
-      }
-    } catch (err) {
-      alert(err.response?.data?.msg || 'Interview scheduling failed');
-    }
+    setCallLink(fullLink);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(callLink);
+    alert('Link copied!');
   };
 
   return (
     <>
       <TopBar />
+
       <Box p={3}>
-        <Typography variant="h4" gutterBottom>
-          HR Dashboard
-        </Typography>
+        <Typography variant="h4" gutterBottom>HR Dashboard</Typography>
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={8}>
@@ -210,7 +208,7 @@ export default function HRDashboard() {
                 <Typography variant="h6">Assigned Tasks</Typography>
 
                 <List>
-                  {tasks.map((t) => (
+                  {tasks.map(t => (
                     <ListItem key={t.id} divider>
                       <ListItemText
                         primary={t.title}
@@ -219,8 +217,8 @@ export default function HRDashboard() {
 
                       <Select
                         value={t.status}
-                        onChange={(e) => handleStatusChange(t, e.target.value)}
-                        sx={{ minWidth: 140, mr: 2 }}
+                        onChange={e => handleStatusChange(t, e.target.value)}
+                        sx={{ minWidth: 120, mr: 2 }}
                       >
                         <MenuItem value="Pending">Pending</MenuItem>
                         <MenuItem value="In Progress">In Progress</MenuItem>
@@ -236,16 +234,53 @@ export default function HRDashboard() {
                     </ListItem>
                   ))}
                 </List>
+
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
+        {/* 🔥 SHOW LINK LIKE REAL INTERVIEW LINK */}
+        {callLink && (
+          <Box mt={3} p={2} border="1px solid #ccc" borderRadius="10px">
+            <Typography variant="h6">Interview Link</Typography>
+
+            <Typography
+              sx={{
+                color: 'blue',
+                textDecoration: 'underline',
+                wordBreak: 'break-all',
+                cursor: 'pointer'
+              }}
+              onClick={() => window.open(callLink, '_blank')}
+            >
+              {callLink}
+            </Typography>
+
+            <Box mt={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => navigate(callLink.replace(window.location.origin, ''))}
+                sx={{ mr: 2 }}
+              >
+                Join Interview
+              </Button>
+
+              <Button variant="outlined" onClick={handleCopy}>
+                Copy Link
+              </Button>
+            </Box>
+          </Box>
+        )}
+
+        {/* DIALOG */}
         <Dialog open={open} onClose={() => setOpen(false)}>
           <DialogTitle>Schedule Interview</DialogTitle>
 
           <form onSubmit={handleInterviewSubmit}>
             <DialogContent>
+
               <FormControl fullWidth margin="normal">
                 <InputLabel>Candidate</InputLabel>
                 <Select
@@ -254,7 +289,7 @@ export default function HRDashboard() {
                   onChange={handleInterviewChange}
                   required
                 >
-                  {candidates.map((c) => (
+                  {candidates.map(c => (
                     <MenuItem key={c.id} value={c.id}>
                       {c.name || `Candidate #${c.id}`}
                     </MenuItem>
@@ -287,16 +322,16 @@ export default function HRDashboard() {
                   <MenuItem value="Chat">Chat</MenuItem>
                 </Select>
               </FormControl>
+
             </DialogContent>
 
             <DialogActions>
               <Button onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" variant="contained">
-                Schedule
-              </Button>
+              <Button type="submit" variant="contained">Schedule</Button>
             </DialogActions>
           </form>
         </Dialog>
+
       </Box>
     </>
   );
