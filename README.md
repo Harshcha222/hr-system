@@ -85,7 +85,7 @@ The frontend will start at https://hr-system-frotend.onrender.com.
 ---
 
 ## Optional: Walkthrough Video
-- (Add a link to your 2-minute walkthrough video here if available)
+https://drive.google.com/file/d/1nkmYD0cC-5DAtFz43HdbP8ZT9wvrH5w7/view?usp=sharing
 
 ---
 
