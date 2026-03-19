@@ -57,7 +57,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 python run.py
 ```
-The backend will start at `http://localhost:5000`.
+The backend will start at https://hr-system-mwrd.onrender.com.
 
 ### 3. Frontend Setup
 ```
@@ -65,7 +65,7 @@ cd ../frotend
 npm install
 npm run dev
 ```
-The frontend will start at `http://localhost:5173`.
+The frontend will start at https://hr-system-frotend.onrender.com.
 
 ---
 
@@ -79,10 +79,10 @@ The frontend will start at `http://localhost:5173`.
 ---
 
 ## Deployment
-- Deploy backend and frontend to [Render](https://render.com/) or [Railway](https://railway.app/).
+- Deploy backend and frontend to [Render]
 - Update the API URLs in the frontend if deploying to a different domain.
 - Add your live demo links here:
-  - **Live Demo:** [Frontend Link](#) | [Backend Link](#)
+  - **Live Demo:** [Frontend Link] https://hr-system-frotend.onrender.com | [Backend Link] https://hr-system-mwrd.onrender.com
 
 ---
 
